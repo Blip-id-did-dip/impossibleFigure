@@ -41,22 +41,22 @@ box_list = [[0]*5 for i in range(5)]
 ##            box_index +=1
 
 Lbox_list = [[1,2,1,1,0],
-            [1,0,0,0,0],
-            [1,0,0,0,0],
-            [1,0,0,0,0],
-            [1,0,0,0,0]]
+            [1,0,0,0,1],
+            [1,0,0,0,1],
+            [1,0,0,0,2],
+            [1,1,1,1,1]]
 
 Rbox_list = [[0,0,0,0,1],
-            [1,0,0,1,0],
-            [1,0,1,0,0],
-            [1,1,0,0,0],
-            [1,0,0,0,0]]
+            [1,0,0,1,1],
+            [1,0,1,0,1],
+            [1,1,0,0,1],
+            [0,0,0,0,1]]
 
 Tbox_list = [[1,1,1,1,1],
             [0,0,0,1,0],
             [0,0,1,0,0],
             [0,1,0,0,0],
-            [0,0,0,0,0]]
+            [0,2,1,1,0]]
 
 
 
@@ -69,20 +69,20 @@ my_array = np.full((image_height,image_width,3),(0,0,0), dtype=np.ubyte)
 
 
 Avc1 = (0,1)
-Avc2 = (1,0.2)
+Avc2 = (1,-0.5)
 
-Bvc1 = (0,1)
-Bvc2 = (1,1.2)
+Bvc1 = Avc1
+Bvc2 = (Avc1[0] + Avc2[0], Avc1[1] + Avc2[1])
 
-Cvc1 = (1, 1.2)
-Cvc2 = (1, 0.2)
+Cvc1 = Bvc2
+Cvc2 = Avc2
 
 
 print("beginning cubes")
 
 for xind in range(image_height):
     for yind in range(image_width):
-        xcoord = (image_height - xind ) / image_height * 9 -1
+        xcoord = (image_height - xind ) / image_height * 9 -3
         ycoord = (yind ) / image_width * 9 -1
 
 
@@ -91,10 +91,12 @@ for xind in range(image_height):
 
         if check >0 :
             my_array[xind][yind] = (255,255,255)
-        if check !=2 and   on_tile(xcoord - 1, ycoord , Cvc1 , Cvc2,Tbox_list, (-1,0)):
-            my_array[xind][yind] = (0,255,255)
+        if check !=2:
+            check = on_tile(xcoord - Avc1[1], ycoord - Avc1[0] , Cvc1 , Cvc2,Tbox_list, (-1,0))
+            if check >0 :
+                my_array[xind][yind] = (0,255,255)
         
-        if check !=2 and   on_tile(xcoord - 0.2, ycoord - 1, Bvc1 , Bvc2,Rbox_list, (0,-1)):
+        if check !=2 and   on_tile(xcoord - Avc2[1], ycoord - Avc2[0], Bvc1 , Bvc2,Rbox_list, (0,-1)):
             my_array[xind][yind] = (0,0,255)
         
         
