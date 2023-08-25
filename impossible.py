@@ -120,7 +120,7 @@ for xind in range(image_height):
 
 
 window = tk.Tk()
-
+window.geometry('1000x1000')
 im = Image.fromarray(my_array)
 tkimage = ImageTk.PhotoImage(im)
 
