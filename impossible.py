@@ -34,10 +34,6 @@ def find_image_bounds(vector1, vector2, boxShape):
     return multiplier, bottom - 0.5*( multiplier - xmultiplier), left -0.5* (multiplier - ymultiplier)
 
 
-# Create the array that determines where cubes are
-box_list = [[0]*5 for i in range(5)]
-
-
 
 
 
