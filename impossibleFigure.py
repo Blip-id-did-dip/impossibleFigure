@@ -10,8 +10,9 @@ class impossibleFigure:
         self.left_texture = texture((255,255,255))
         self.right_texture = texture((0,0,255))
         
-        self.image_width = 300
-        self.image_height = 200
+        
+        self.image_height = 400
+        self.image_width = 600
         
         self.Avc1 = (0,1) # vertical vector component
         #self.Avc2 = (0.87,-0.5) # horizontal vector component
@@ -36,17 +37,15 @@ class impossibleFigure:
 
 
 
-    def __findImageBounds(self):
+    def __findImageBounds(self, givenHeight, givenLength):
 
-        givenHeight = self.boxHeight + 1
-        givenLength = self.boxLength +1
         usedRight = max(self.Avc2[0] * givenLength , self.Avc2[0] * givenLength + self.Avc1[0]* givenHeight)
         usedLeft = min(0,self.Avc1[0]* givenHeight)
         usedTop = max(self.Avc1[1] * givenHeight, self.Avc1[1] *givenHeight + self.Avc2[1]*givenLength)
         usedBottom = min(0,self.Avc2[1]*givenLength)
 
-        givenHeight = self.boxHeight + 2
-        givenLength = self.boxLength + 2
+        givenHeight = givenHeight + 1
+        givenLength = givenLength + 1
         paddedRight = max(self.Avc2[0] * givenLength , self.Avc2[0] * givenLength + self.Avc1[0]* givenHeight)
         paddedLeft =  min(0,self.Avc1[0]* givenHeight)
         paddedTop = max(self.Avc1[1] * givenHeight, self.Avc1[1] *givenHeight + self.Avc2[1]*givenLength)
@@ -62,8 +61,6 @@ class impossibleFigure:
         multiplier = max(deltaVert / self.image_height, deltaHorz / self.image_width)
 
         return multiplier, usedBottom - 0.5 * (self.image_height* multiplier - usedVert), usedLeft - 0.5*(self.image_width * multiplier - usedHorz)
-
-
     
     
     def __on_tile(self, xcoord , ycoord, vectorA, vectorB, box_list, multiplier):
@@ -85,7 +82,7 @@ class impossibleFigure:
     def updateBoxlist(self, verticalPos, horizontalPos, leftValue, topValue, rightValue):
 
         xind , yind = self.__getScaledPos(verticalPos, horizontalPos)
-        sizeMultiplier , xoffset, yoffset = self.__findImageBounds()
+        sizeMultiplier , xoffset, yoffset = self.__findImageBounds(self.boxHeight + 1, self.boxLength +1)
         xcoord = (self.image_height - xind )* sizeMultiplier + xoffset 
         ycoord = (yind )  * sizeMultiplier  + yoffset 
         xBox, yBox, posL = self.__getBoxCoordinates(xcoord, ycoord, self.Avc1, self.Avc2, self.Lbox_list, (0,0))
@@ -103,8 +100,50 @@ class impossibleFigure:
 
         return scaledVertical, scaledHorizontal
 
-    def getFigure(self):
-        sizeMultiplier , xoffset, yoffset = self.__findImageBounds()
+    def __cullBoxList(self):
+        lowX = -1
+        highX = self.boxHeight - 1
+        lowY = -1
+        highY = self.boxLength - 1
+
+        for xind in range(self.boxHeight):
+            for yind in range(self.boxLength):
+                if (self.Lbox_list[xind][yind] > 0 or self.Rbox_list[xind][yind] >0 or self.Tbox_list[xind][yind]>0):
+                    highX = xind
+                    if (lowX == -1):
+                        lowX = xind
+
+        for yind in range(self.boxLength):
+            for xind in range(self.boxHeight):
+                if (self.Lbox_list[xind][yind] > 0 or self.Rbox_list[xind][yind] >0 or self.Tbox_list[xind][yind]>0):
+                    highY = yind
+                    if (lowY == -1):
+                        lowY = yind
+
+
+        LculledList = [(highY - lowY + 1) * [0] for i in range(highX - lowX + 1)]
+        RculledList = [(highY - lowY + 1) * [0] for i in range(highX - lowX + 1)]
+        TculledList = [(highY - lowY + 1) * [0] for i in range(highX - lowX + 1)]
+
+        XculledInd = 0
+        YculledInd = 0
+
+        for xind in range(lowX, highX + 1):
+            YculledInd = 0
+            for yind in range(lowY, highY + 1):
+                LculledList[XculledInd][YculledInd] = self.Lbox_list[xind][yind]
+                RculledList[XculledInd][YculledInd] = self.Rbox_list[xind][yind]
+                TculledList[XculledInd][YculledInd] = self.Tbox_list[xind][yind]
+
+                YculledInd = YculledInd + 1
+
+            XculledInd = XculledInd + 1       
+
+         
+        return LculledList, RculledList, TculledList
+    
+    def loadPreview(self):
+        sizeMultiplier , xoffset, yoffset = self.__findImageBounds(self.boxHeight + 1, self.boxLength +1)
     
 
         for xind in range(self.image_height):
@@ -112,39 +151,75 @@ class impossibleFigure:
                 xcoord = (self.image_height - xind ) * sizeMultiplier + xoffset 
                 ycoord = (yind )* sizeMultiplier  + yoffset 
 
-
                 check, xTilePos, yTilePos = self.__on_tile(xcoord, ycoord, self.Avc1 , self.Avc2, self.Lbox_list, (0,0))
 
                 #this needs to be replaced with the background function
                 self.preview[xind][yind] = (100,100,100) 
 
-                # this check is only in the getFigure method for testing purposes
                 if (xTilePos > 0.9 or yTilePos > 0.9):
-                    self.preview[xind][yind] = (255,0,0)
+                    self.preview[xind][yind] = (75,75,75)
                     continue
 
+        return self.preview
+    
+    def getFigure(self):
+        self.Avc1 = (0,1)
+        self.Avc2 = (0.87, -0.5)
+
+        self.Bvc1 = self.Avc1
+        self.Bvc2 = (self.Avc1[0] + self.Avc2[0], self.Avc1[1] + self.Avc2[1])
+
+        self.Cvc1 = self.Bvc2
+        self.Cvc2 = self.Avc2
+        
+        self.image_height = 1000
+        self.image_width = 1000
+        renderImage = np.full((self.image_height,self.image_width,3),(0,0,0), dtype=np.ubyte)
+
+
+        LculledList , RculledList, TculledList = self.__cullBoxList()
+        #LculledList , RculledList, TculledList = self.Lbox_list, self.Rbox_list, self.Tbox_list
+
+        sizeMultiplier , xoffset, yoffset = self.__findImageBounds(len(LculledList),len(LculledList[0]))
+
+        #sizeMultiplier , xoffset, yoffset = self.__findImageBounds(self.boxHeight + 1, self.boxLength +1)
+        
+
+
+        for xind in range(self.image_height):
+            for yind in range(self.image_width):
+                xcoord = (self.image_height - xind ) * sizeMultiplier + xoffset 
+                ycoord = (yind )* sizeMultiplier  + yoffset 
+
+
+                check, xTilePos, yTilePos = self.__on_tile(xcoord, ycoord, self.Avc1 , self.Avc2, LculledList, (0,0))
+
+                #this needs to be replaced with the background function
+                renderImage[xind][yind] = (100,100,100) 
+
+
                 if check >0 :
-                    self.preview[xind][yind] = self.left_texture.getColour(xTilePos,yTilePos)
+                    renderImage[xind][yind] = self.left_texture.getColour(xTilePos,yTilePos)
                 if check !=2:
-                    check, xTilePos, yTilePos = self.__on_tile(xcoord - self.Avc1[1], ycoord - self.Avc1[0] , self.Cvc1 , self.Cvc2, self.Tbox_list, (-1,0))
+                    check, xTilePos, yTilePos = self.__on_tile(xcoord - self.Avc1[1], ycoord - self.Avc1[0] , self.Cvc1 , self.Cvc2,TculledList, (-1,0))
                     if check >0 :
-                        self.preview[xind][yind] = self.top_texture.getColour(xTilePos,yTilePos)
+                        renderImage[xind][yind] = self.top_texture.getColour(xTilePos,yTilePos)
                 
                 if check !=2 :
-                    check, xTilePos, yTilePos = self.__on_tile(xcoord - self.Avc2[1], ycoord - self.Avc2[0], self.Bvc1 , self.Bvc2, self.Rbox_list, (0,1))
+                    check, xTilePos, yTilePos = self.__on_tile(xcoord - self.Avc2[1], ycoord - self.Avc2[0], self.Bvc1 , self.Bvc2, RculledList, (0,1))
                     if check >0 :
-                        self.preview[xind][yind] = self.right_texture.getColour(xTilePos,yTilePos)
-        return self.preview
+                        renderImage[xind][yind] = self.right_texture.getColour(xTilePos,yTilePos)
+        return renderImage
     
     def updatePreview(self, verticalPos, horizontalPos):
         scaledVertical , scaledHorizontal = self.__getScaledPos(verticalPos, horizontalPos)
         
-        sizeMultiplier , xoffset, yoffset = self.__findImageBounds()
-        previewAmount = 30
+        sizeMultiplier , xoffset, yoffset = self.__findImageBounds(self.boxHeight + 1, self.boxLength +1)
+        previewAmount = round(4/sizeMultiplier)
         xmin = max(0,scaledVertical - previewAmount)
-        xmax = min(self.image_height , scaledVertical + 2*previewAmount)
+        xmax = min(self.image_height , scaledVertical + previewAmount)
         ymin = max(0,scaledHorizontal - previewAmount)
-        ymax = min(self.image_width, scaledHorizontal + 2*previewAmount)
+        ymax = min(self.image_width, scaledHorizontal + previewAmount)
 
         for xind in range(xmin, xmax):
             for yind in range(ymin, ymax):
@@ -158,7 +233,7 @@ class impossibleFigure:
                 self.preview[xind][yind] = (100,100,100) 
 
                 if (xTilePos > 0.9 or yTilePos > 0.9):
-                    self.preview[xind][yind] = (255,0,0)
+                    self.preview[xind][yind] = (75,75,75)
                     continue
 
                 if check >0 :

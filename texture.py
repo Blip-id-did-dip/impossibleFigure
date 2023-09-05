@@ -16,7 +16,8 @@ class texture:
         
     def getColour(self, xPos, yPos):
         if self.solidBlock == 1:
-            return self.colour
+            return (self.colour[0], self.colour[1]*xPos, self.colour[2]*yPos)
+
         
         xind = floor((1-xPos) * self.textureSize[0])
         yind = floor((yPos) * self.textureSize[1])

@@ -12,11 +12,15 @@ global myFigure
 global displayHeight
 global displayWidth
 
-displayHeight = 600
-displayWidth = 900
+displayHeight = 1200
+displayWidth = 1800
 myFigure = impossibleFigure()
 
-myArray = myFigure.getFigure()
+myFigure.left_texture.setTexture("local/RedJC.jpg")
+myFigure.right_texture.setTexture("test.jpg")
+myFigure.top_texture.setTexture("brick.jpg")
+
+myArray = myFigure.loadPreview()
 
 def testPos(event):
 
@@ -26,7 +30,7 @@ def testPos(event):
 
     
 
-    myFigure.updateBoxlist(event.y / displayHeight ,event.x / displayWidth, leftIndicator.get(), topIndicator.get(), rightIndicator.get())
+    myFigure.updateBoxlist(event.y / displayHeight ,event.x / displayWidth, leftIndicator.get() * forceIndicator.get(), topIndicator.get()* forceIndicator.get(), rightIndicator.get()* forceIndicator.get())
     myArray = myFigure.updatePreview(event.y / displayHeight , event.x / displayWidth)
     im = Image.fromarray(myArray)
     #im.show()
@@ -34,6 +38,12 @@ def testPos(event):
     #tkimage = ImageTk.PhotoImage(im)
     event.widget.config(image = tkimage)
     event.widget.image = tkimage
+
+
+def renderMe():
+    renderedArray = myFigure.getFigure()
+    renderedImage = Image.fromarray(renderedArray)
+    renderedImage = renderedImage.save("local/test1.jpg")
 
 
 im = Image.fromarray(myArray)
@@ -50,13 +60,22 @@ frameImage.pack(side='left')
 topIndicator = tk.IntVar()
 leftIndicator = tk.IntVar()
 rightIndicator = tk.IntVar()
+forceIndicator = tk.IntVar()
 
 topCheckBox = tk.Checkbutton(frameButtons, text='top', variable=topIndicator, onvalue=1, offvalue=0)
 leftCheckBox = tk.Checkbutton(frameButtons, text='left', variable=leftIndicator, onvalue=1, offvalue=0)
 rightCheckBox = tk.Checkbutton(frameButtons, text='right', variable=rightIndicator, onvalue=1, offvalue=0)
+forcedCheckBox = tk.Checkbutton(frameButtons, text='force',variable = forceIndicator, onvalue= 2, offvalue=1)
 topCheckBox.pack()
 leftCheckBox.pack()
 rightCheckBox.pack()
+forcedCheckBox.pack()
+
+renderButton = tk.Button(frameButtons, text = "Render", command = renderMe)
+
+renderButton.pack()
+
+
 frameButtons.pack(side='right')
 
 window.mainloop()
