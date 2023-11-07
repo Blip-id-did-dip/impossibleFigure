@@ -6,13 +6,13 @@ from texture import texture
 
 class impossibleFigure:
     def __init__(self):
-        self.top_texture = texture((0,255,255))
+        self.top_texture = texture((0,128,255))
         self.left_texture = texture((255,255,255))
-        self.right_texture = texture((0,0,255))
+        self.right_texture = texture((128,255,128))
         
         
-        self.image_height = 400
-        self.image_width = 600
+        self.image_height = 300
+        self.image_width = 450
         
         self.Avc1 = (0,1) # vertical vector component
         #self.Avc2 = (0.87,-0.5) # horizontal vector component
@@ -94,9 +94,7 @@ class impossibleFigure:
     def __getScaledPos(self, verticalPos, horizontalPos):
         scaledVertical = round(verticalPos * self.image_height)
         scaledHorizontal = round(horizontalPos * self.image_width)
-        print("internal")
-        print(scaledVertical)
-        print(scaledHorizontal)
+
 
         return scaledVertical, scaledHorizontal
 
@@ -156,25 +154,25 @@ class impossibleFigure:
                 #this needs to be replaced with the background function
                 self.preview[xind][yind] = (100,100,100) 
 
-                if (xTilePos > 0.9 or yTilePos > 0.9):
-                    self.preview[xind][yind] = (75,75,75)
+                if (xTilePos > 0.8 or yTilePos > 0.8):
+                    self.preview[xind][yind] = (90,90,90)
                     continue
 
         return self.preview
     
     def getFigure(self):
-        self.Avc1 = (0,1)
-        self.Avc2 = (0.87, -0.5)
+        vectorA1 = (0,1)
+        vectorA2 = (0.87, -0.5)
 
-        self.Bvc1 = self.Avc1
-        self.Bvc2 = (self.Avc1[0] + self.Avc2[0], self.Avc1[1] + self.Avc2[1])
+        vectorB1 = vectorA1
+        vectorB2 = (vectorA1[0] + vectorA2[0], vectorA1[1] + vectorA2[1])
 
-        self.Cvc1 = self.Bvc2
-        self.Cvc2 = self.Avc2
+        vectorC1 = vectorB2
+        vectorC2 = vectorA2
         
-        self.image_height = 1000
-        self.image_width = 1000
-        renderImage = np.full((self.image_height,self.image_width,3),(0,0,0), dtype=np.ubyte)
+        renderHeight = 1000
+        renderWidth = 1000
+        renderImage = np.full((renderHeight,renderWidth,3),(0,0,0), dtype=np.ubyte)
 
 
         LculledList , RculledList, TculledList = self.__cullBoxList()
@@ -186,40 +184,50 @@ class impossibleFigure:
         
 
 
-        for xind in range(self.image_height):
-            for yind in range(self.image_width):
-                xcoord = (self.image_height - xind ) * sizeMultiplier + xoffset 
+        for xind in range(renderHeight):
+            for yind in range(renderWidth):
+                xcoord = (renderHeight - xind ) * sizeMultiplier + xoffset 
                 ycoord = (yind )* sizeMultiplier  + yoffset 
 
 
-                check, xTilePos, yTilePos = self.__on_tile(xcoord, ycoord, self.Avc1 , self.Avc2, LculledList, (0,0))
+                check, xTilePos, yTilePos = self.__on_tile(xcoord, ycoord, vectorA1 , vectorA2, LculledList, (0,0))
 
                 #this needs to be replaced with the background function
-                renderImage[xind][yind] = (100,100,100) 
+                renderImage[xind][yind] = (math.floor(100*xind*yind/renderHeight/renderWidth),math.floor(100*yind/renderWidth),math.floor(100*xind/renderHeight))
 
 
                 if check >0 :
                     renderImage[xind][yind] = self.left_texture.getColour(xTilePos,yTilePos)
                 if check !=2:
-                    check, xTilePos, yTilePos = self.__on_tile(xcoord - self.Avc1[1], ycoord - self.Avc1[0] , self.Cvc1 , self.Cvc2,TculledList, (-1,0))
+                    check, xTilePos, yTilePos = self.__on_tile(xcoord - vectorA1[1], ycoord - vectorA1[0] , vectorC1 , vectorC2,TculledList, (-1,0))
                     if check >0 :
                         renderImage[xind][yind] = self.top_texture.getColour(xTilePos,yTilePos)
                 
                 if check !=2 :
-                    check, xTilePos, yTilePos = self.__on_tile(xcoord - self.Avc2[1], ycoord - self.Avc2[0], self.Bvc1 , self.Bvc2, RculledList, (0,1))
+                    check, xTilePos, yTilePos = self.__on_tile(xcoord - vectorA2[1], ycoord - vectorA2[0], vectorB1 , vectorB2, RculledList, (0,1))
                     if check >0 :
                         renderImage[xind][yind] = self.right_texture.getColour(xTilePos,yTilePos)
         return renderImage
     
     def updatePreview(self, verticalPos, horizontalPos):
-        scaledVertical , scaledHorizontal = self.__getScaledPos(verticalPos, horizontalPos)
-        
+        xind , yind = self.__getScaledPos(verticalPos, horizontalPos)
         sizeMultiplier , xoffset, yoffset = self.__findImageBounds(self.boxHeight + 1, self.boxLength +1)
-        previewAmount = round(4/sizeMultiplier)
-        xmin = max(0,scaledVertical - previewAmount)
-        xmax = min(self.image_height , scaledVertical + previewAmount)
-        ymin = max(0,scaledHorizontal - previewAmount)
-        ymax = min(self.image_width, scaledHorizontal + previewAmount)
+        xcoord = (self.image_height - xind )* sizeMultiplier + xoffset 
+        ycoord = (yind )  * sizeMultiplier  + yoffset 
+        xBox, yBox, posL = self.__getBoxCoordinates(xcoord, ycoord, self.Avc1, self.Avc2, self.Lbox_list, (0,0))
+        #scaledVertical , scaledHorizontal = self.__getScaledPos((xBox)/(self.boxHeight),(yBox) / (self.boxLength) )
+        
+        scaledVertical = math.floor((xBox)*self.image_height/(self.boxHeight+2) )
+        scaledHorizontal = math.floor((yBox)*self.image_width/(self.boxLength+3)+10)
+        print("internal")
+        print(scaledVertical)
+        print(scaledHorizontal)
+
+        
+        xmin = max(0,scaledVertical)
+        xmax = min(self.image_height , scaledVertical + 25)
+        ymin = max(0,scaledHorizontal)
+        ymax = min(self.image_width, scaledHorizontal +20)
 
         for xind in range(xmin, xmax):
             for yind in range(ymin, ymax):
@@ -232,8 +240,8 @@ class impossibleFigure:
                 #this needs to be replaced with the background function
                 self.preview[xind][yind] = (100,100,100) 
 
-                if (xTilePos > 0.9 or yTilePos > 0.9):
-                    self.preview[xind][yind] = (75,75,75)
+                if (xTilePos > 0.8 or yTilePos > 0.8):
+                    self.preview[xind][yind] = (90,90,90)
                     continue
 
                 if check >0 :

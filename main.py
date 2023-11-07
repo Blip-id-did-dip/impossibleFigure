@@ -16,9 +16,9 @@ displayHeight = 1200
 displayWidth = 1800
 myFigure = impossibleFigure()
 
-myFigure.left_texture.setTexture("local/RedJC.jpg")
-myFigure.right_texture.setTexture("test.jpg")
-myFigure.top_texture.setTexture("brick.jpg")
+#myFigure.left_texture.setTexture("local/RedJC.jpg")
+#myFigure.right_texture.setTexture("test.jpg")
+#myFigure.top_texture.setTexture("brick.jpg")
 
 myArray = myFigure.loadPreview()
 
@@ -43,7 +43,7 @@ def testPos(event):
 def renderMe():
     renderedArray = myFigure.getFigure()
     renderedImage = Image.fromarray(renderedArray)
-    renderedImage = renderedImage.save("local/test1.jpg")
+    renderedImage = renderedImage.save("local\example1.jpg")
 
 
 im = Image.fromarray(myArray)
@@ -70,8 +70,9 @@ topCheckBox.pack()
 leftCheckBox.pack()
 rightCheckBox.pack()
 forcedCheckBox.pack()
-
-renderButton = tk.Button(frameButtons, text = "Render", command = renderMe)
+forcedCheckBox.select()
+forcedCheckBox.deselect()
+renderButton = tk.Button(frameImage, text = "Render", command = renderMe)
 
 renderButton.pack()
 
