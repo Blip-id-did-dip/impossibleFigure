@@ -6,14 +6,14 @@ from impossibleFigure import impossibleFigure
 
 
 window = tk.Tk()
-window.geometry('600x600')
+window.geometry('1700x1100')
 
 global myFigure
 global displayHeight
 global displayWidth
 
-displayHeight = 1200
-displayWidth = 1800
+displayHeight = 1000
+displayWidth = 1500
 myFigure = impossibleFigure()
 
 #myFigure.left_texture.setTexture("local/RedJC.jpg")
@@ -43,8 +43,20 @@ def testPos(event):
 def renderMe():
     renderedArray = myFigure.getFigure()
     renderedImage = Image.fromarray(renderedArray)
-    renderedImage = renderedImage.save("local\example1.jpg")
+    renderedImage = renderedImage.save("local\example1.png")
 
+def saveFigure():
+    myFigure.saveFigure()
+
+def loadFigure():
+    myFigure.loadFigure()
+    myArray = myFigure.updatePreview(0,0,True)
+    im = Image.fromarray(myArray)
+    #im.show()
+    tkimage = ImageTk.PhotoImage(im.resize((displayWidth,displayHeight)))
+    #tkimage = ImageTk.PhotoImage(im)
+    label.config(image = tkimage)
+    label.image = tkimage
 
 im = Image.fromarray(myArray)
 tkimage = ImageTk.PhotoImage(im.resize((displayWidth,displayHeight)) )
@@ -66,17 +78,21 @@ topCheckBox = tk.Checkbutton(frameButtons, text='top', variable=topIndicator, on
 leftCheckBox = tk.Checkbutton(frameButtons, text='left', variable=leftIndicator, onvalue=1, offvalue=0)
 rightCheckBox = tk.Checkbutton(frameButtons, text='right', variable=rightIndicator, onvalue=1, offvalue=0)
 forcedCheckBox = tk.Checkbutton(frameButtons, text='force',variable = forceIndicator, onvalue= 2, offvalue=1)
-topCheckBox.pack()
-leftCheckBox.pack()
-rightCheckBox.pack()
-forcedCheckBox.pack()
+topCheckBox.pack(side='top')
+leftCheckBox.pack(side='top')
+rightCheckBox.pack(side='top')
+forcedCheckBox.pack(side='top')
 forcedCheckBox.select()
 forcedCheckBox.deselect()
+
 renderButton = tk.Button(frameImage, text = "Render", command = renderMe)
+saveButton = tk.Button(frameButtons, text="Save", command = saveFigure)
+loadButton = tk.Button(frameButtons, text="Load", command = loadFigure)
 
 renderButton.pack()
+saveButton.pack(side = 'right')
+loadButton.pack(side = 'right')
 
-
-frameButtons.pack(side='right')
+frameButtons.pack(side='left')
 
 window.mainloop()
